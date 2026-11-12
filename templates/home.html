@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - NexusTech{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>{{ titulo }}</h1>
+    <p>{{ mensaje }}</p>
+    <a href="{% url 'catalogo' %}" class="btn">Ver Catálogo Completo</a>
+</section>
+{% endblock %}

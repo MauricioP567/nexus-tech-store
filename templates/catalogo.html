@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Catálogo de Productos{% endblock %}
+
+{% block content %}
+<h2>Nuestros Productos</h2>
+
+<div class="grid">
+    <!-- Bucle for iterando el QuerySet -->
+    {% for producto in productos %}
+    <div class="card">
+        <!-- Imagen del producto o una por defecto -->
+        {% if producto.imagen_url %}
+            <img src="{{ producto.imagen_url }}" alt="{{ producto.nombre }}" class="card-img">
+        {% else %}
+            <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=500&q=80" alt="Tecnología" class="card-img">
+        {% endif %}
+        
+        <div class="card-body">
+            <!-- Filtro title para poner mayúscula inicial -->
+            <h3>{{ producto.nombre|title }}</h3>
+            <span class="categoria">{{ producto.categoria }}</span>
+            
+            <!-- Condicional para el stock -->
+            <div class="stock">
+                {% if producto.stock > 0 %}
+                    Disponibles: {{ producto.stock }}
+                {% else %}
+                    <span class="agotado">AGOTADO</span>
+                {% endif %}
+            </div>
+            
+            <!-- Filtro floatformat para precios -->
+            <p class="precio">S/ {{ producto.precio|floatformat:2 }}</p>
+        </div>
+    </div>
+    {% empty %}
+    <p>No hay productos disponibles en este momento.</p>
+    {% endfor %}
+</div>
+{% endblock %}
