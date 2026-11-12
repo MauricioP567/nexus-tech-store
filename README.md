@@ -4,6 +4,12 @@
 **Semana:** 11  
 **Alumno:** Mauricio Paolo Vega Sanabria
 
+
+
+
+
+
+
 ##  Descripción del Proyecto
 NexusTech Store es una aplicación web desarrollada con Django que implementa el patrón arquitectónico MTV (Model-Template-View). Consiste en un catálogo de productos tecnológicos con un diseño web moderno y responsivo (modo oscuro), que consume datos dinámicos desde una base de datos SQLite mediante el ORM de Django.
 
@@ -47,11 +53,20 @@ Se definió la clase `Producto` con los campos requeridos (nombre, precio, categ
 
 ![Código del Modelo](Capturas/modelos.png)
 
-### QuerySets y Lazy Evaluation
-En la CBV se utilizó el siguiente QuerySet:
-`Producto.objects.filter(stock__gt=0).order_by('precio')`
+### QuerySets utilizados
+1. **QuerySet Principal (en `views.py`):** 
+   `Producto.objects.filter(stock__gt=0).order_by('precio')`
+   * **Propósito:** Filtra los productos que tengan stock disponible (mayor a 0) y los ordena de menor a mayor precio para mostrarlos en el catálogo.
 
-* **Lazy Evaluation (Evaluación diferida):** Los QuerySets en Django no realizan la consulta SQL a la base de datos inmediatamente al ser declarados. La consulta se "prepara" y solo se ejecuta cuando el template itera sobre los datos con el bucle `{% for %}`. Esto ahorra recursos, ya que si el QuerySet no llega a usarse, la base de datos nunca recibe la petición.
+2. **QuerySet en el Template (inyectado por la CBV):**
+   `productos` (definido por `context_object_name`).
+   * **Propósito:** Es el conjunto de datos iterable que la plantilla recorre para construir las tarjetas de los productos.
+
+### Explicación de Lazy Evaluation (Evaluación Diferida)
+Los QuerySets en Django son "perezosos" (lazy). Esto significa que **la consulta SQL a la base de datos no se ejecuta en el momento en que se declara el QuerySet en `views.py`**. Django simplemente "prepara" la consulta. La base de datos solo recibe la orden de ejecución (y devuelve los datos) cuando el resultado es estrictamente necesario, por ejemplo:
+* Cuando el template ejecuta el bucle `{% for producto in productos %}`.
+* Cuando en el código Python se convierte a lista (`list(queryset)`), se evalúa su longitud (`len()`) o se itera sobre él.
+**Ventaja:** Esto ahorra recursos en el servidor, ya que si el QuerySet no llega a utilizarse, la base de datos nunca recibe la petición, optimizando el rendimiento.
 
 ---
 
@@ -78,6 +93,46 @@ Se registró el modelo en `admin.py` para gestionar los productos de forma visua
 ![Panel de Administración](Capturas/admin.png)
 
 ---
+
+
+
+## 6. Diagrama de flujo 
+┌─────────────────────────────────────────────────────────┐
+ │ 1. REQUEST (Cliente)                                    │
+ │    El usuario entra a http://127.0.0.1:8000/catalogo/   │
+ └────────────────────────────┬────────────────────────────┘
+                              ▼
+ ┌─────────────────────────────────────────────────────────┐
+ │ 2. URLS (`config/urls.py` → `catalogo/urls.py`)         │
+ │    Django intercepta y redirige al patrón correspondiente │
+ └────────────────────────────┬────────────────────────────┘
+                              ▼
+ ┌─────────────────────────────────────────────────────────┐
+ │ 3. VIEW (Lógica - `ProductoListView`)                   │
+ │    Recibe la petición y solicita los datos necesarios   │
+ └──────┬───────────────────────────────────────────▲──────┘
+        │                                           │
+        ▼ (Solicita datos)                          │ (Devuelve datos)
+ ┌─────────────────────────┐                        │
+ │ 4. MODEL (Datos / ORM)  ├────────────────────────┘
+ │    Consulta SQL a SQLite│
+ └─────────────────────────┘
+        │
+        ▼ (Pasa datos a la vista)
+ ┌─────────────────────────────────────────────────────────┐
+ │ 5. TEMPLATE (Presentación)                              │
+ │    Renderiza el HTML dinámico (`catalogo.html`)         │
+ └────────────────────────────┬────────────────────────────┘
+                              ▼
+ ┌─────────────────────────────────────────────────────────┐
+ │ 6. RESPONSE (Respuesta)                                 │
+ │    El servidor envía el documento HTML final al cliente │
+ └─────────────────────────────────────────────────────────┘
+
+---
+
+
+
 
 ##  Instalación y Ejecución Local
 1. Clonar el repositorio.
